@@ -1,7 +1,7 @@
 clc;
 clear;
 %Read Video file
-  videoObj=VideoReader('kdenlive/720p.mp4');
+  videoObj=VideoReader('/home/emile/Documents/Github/Ping_Pong/720p.mp4');
   videoHeight=videoObj.Height;
   videoWidth=videoObj.Width;
 %Set VideoPlayer
