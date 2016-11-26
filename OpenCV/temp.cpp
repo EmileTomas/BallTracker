@@ -1,89 +1,153 @@
 #include <cmath>
 #include <iostream>
 
-
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/cudaimgproc.hpp>
+#include <fstream>
 
 using namespace std;
 using namespace cv;
-using namespace cv::cuda;
-static void help()
-{
-    cout << "This program demonstrates line finding with the Hough transform." << endl;
-    cout << "Usage:" << endl;
-    cout << "./gpu-example-houghlines <image_name>, Default is ../data/pic1.png\n" << endl;
-}
+Point p1(502,142),p2(820,460);
 
+void draw_circles(Mat &image,vector<Vec3f> circles);
 int main(int argc, const char* argv[])
 {
-    const string filename = argc >= 2 ? argv[1] : "/home/emile/Documents/Github/Ping_Pong/Ball_Tracker/Selection_001.png";
-
-    Mat src = imread(filename, IMREAD_GRAYSCALE);
-    if (src.empty())
-    {
-        help();
-        cout << "can not open " << filename << endl;
+    /* //picture /home/emile/Documents/Github/Ping_Pong/Ball_Tracker/Selection_001.png
+    VideoCapture cap("/home/emile/Documents/Github/Ping_Pong/720p.mp4");
+    if(!cap.isOpened()){
         return -1;
     }
 
-    Mat mask;
-    cv::Canny(src, mask, 100, 200, 3);
+    namedWindow( "circles", 1 );
+    Mat frame,gray_frame,detect_frame;
+    Point p1(502,142),p2(820,460);
+    Rect detect_rect(p1,p2);
 
-    Mat dst_cpu;
-    cv::cvtColor(mask, dst_cpu, COLOR_GRAY2BGR);
-    Mat dst_gpu = dst_cpu.clone();
+    bool button_pressed=false;
+    vector<Vec3f> circles;
+    int frame_num=0;
+    int circle_find=0;
+    int frameList[500];
+    while(!button_pressed){
+        ++frame_num;
+        float begin=getTickCount();
+        //ReadFrame
+        if(!cap.read(frame)){
+            break;
+        }
 
-    vector<Vec4i> lines_cpu;
-    {
-        const int64 start = getTickCount();
+        detect_frame=frame(detect_rect);
+        //Detect circles
+        cvtColor(detect_frame,gray_frame,CV_RGB2GRAY);
+        GaussianBlur(gray_frame,gray_frame,Size(9,9),2,2);
+        HoughCircles(gray_frame, circles, HOUGH_GRADIENT, 2, gray_frame.rows/4, 250, 100 );
 
-        cv::HoughLinesP(mask, lines_cpu, 1, CV_PI / 180, 50, 60, 5);
 
-        const double timeSec = (getTickCount() - start) / getTickFrequency();
-        cout << "CPU Time : " << timeSec * 1000 << " ms" << endl;
-        cout << "CPU Found : " << lines_cpu.size() << endl;
+        //Show circles;
+        draw_circles(frame,circles);
+
+        //Show Dectect Block
+        rectangle(frame,p1,p2,Scalar(255, 0, 0));
+
+        if(circles[0][2]>10) ++circle_find;
+        //Show FPS
+        int fps=1/((getTickCount()-begin)/getTickFrequency());
+        if(frame_num<500) frameList[frame_num]=fps;
+        Point botton_left=Point(100,100);
+        Point botton_right=Point(100,200);
+        putText(frame,to_string(fps),botton_left,CV_FONT_HERSHEY_COMPLEX, 1, Scalar(255, 0, 0) );
+        putText(frame,to_string((circle_find+0.0)/frame_num),botton_right,CV_FONT_HERSHEY_COMPLEX, 1, Scalar(255, 0, 0));
+        imshow( "circles", frame );
+
+
+        if(waitKey(1)>0)
+            button_pressed=true;
+
     }
 
-    for (size_t i = 0; i < lines_cpu.size(); ++i)
-    {
-        Vec4i l = lines_cpu[i];
-        line(dst_cpu, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
-    }
-
-    GpuMat d_src(mask);
-    GpuMat d_lines;
-    {
-        const int64 start = getTickCount();
-
-        Ptr<cuda::HoughSegmentDetector> hough = cuda::createHoughSegmentDetector(1.0f, (float) (CV_PI / 180.0f), 50, 5);
-
-        hough->detect(d_src, d_lines);
-
-        const double timeSec = (getTickCount() - start) / getTickFrequency();
-        cout << "GPU Time : " << timeSec * 1000 << " ms" << endl;
-        cout << "GPU Found : " << d_lines.cols << endl;
-    }
-    vector<Vec4i> lines_gpu;
-    if (!d_lines.empty())
-    {
-        lines_gpu.resize(d_lines.cols);
-        Mat h_lines(1, d_lines.cols, CV_32SC4, &lines_gpu[0]);
-        d_lines.download(h_lines);
-    }
-
-    for (size_t i = 0; i < lines_gpu.size(); ++i)
-    {
-        Vec4i l = lines_gpu[i];
-        line(dst_gpu, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
-    }
-
-    imshow("source", src);
-    imshow("detected lines [CPU]", dst_cpu);
-    imshow("detected lines [GPU]", dst_gpu);
-    waitKey();
-
+    fstream out;
+    out.open("/home/emile/Documents/Github/Ping_Pong/Ball_Tracker/OpenCV/frame_change.txt");
+    for(int i=0;i<500;++i) out<<frameList[i]<<'\n';
+    out.close();
     return 0;
+    */
+    VideoCapture cap("/home/emile/Documents/Github/Ping_Pong/720p.mp4");
+    if(!cap.isOpened()){
+        return -1;
+    }
+
+    namedWindow( "circles", 1 );
+    Mat frame,gray_frame,detect_frame;
+
+    Rect detect_rect(p1,p2);
+    Ptr<cuda::HoughCirclesDetector> hough=cuda::createHoughCirclesDetector(2,gray_frame.rows/6,150,100,90,140,1);   //150 这个参数越低 检测出效果越好
+    vector<Vec3f> circles;
+    cuda::GpuMat image_gpu,g_circles;
+    int frame_num=0;
+    bool key_pressed=false;
+    float frameList[500];
+    int radiu=0;
+    int find_num=0;
+    float begin;
+    while(!key_pressed){
+        if(!cap.read(frame))
+            break;
+        ++frame_num;
+        detect_frame=frame(detect_rect);
+        cvtColor(detect_frame,gray_frame,CV_RGB2GRAY);
+
+        begin=getTickCount();
+        image_gpu.upload(gray_frame);
+        hough->detect(image_gpu,g_circles);
+
+        //Show circles;
+        if(!g_circles.empty()){
+            ++find_num;
+            circles.resize(g_circles.cols);
+            Mat h_circles(1,g_circles.cols,CV_32FC3,&circles[0]);
+            g_circles.download(h_circles);
+            draw_circles(frame,circles);
+            if(find_num<<1000) radiu+=circles[0][2];
+        }
+
+
+        //Show FPS
+        float temp=((getTickCount()-begin)/getTickFrequency());
+        float fps=1/temp;
+        if(frame_num<<1000){
+            frameList[frame_num]=fps;
+            cout<<(radiu+0.0)/frame_num<<endl;
+        }
+
+        Point botton_left=Point(100,100);
+        putText(frame,to_string(fps),botton_left,CV_FONT_HERSHEY_COMPLEX, 1, Scalar(255, 0, 0) );
+        //cout<<to_string((find_num+0.0)/frame_num)<<endl;
+        rectangle(frame,p1,p2,Scalar(255, 0, 0));
+        imshow( "circles", frame );
+
+
+        if(waitKey(1)>0)
+            key_pressed=true;
+
+    }
+    fstream out;
+    out.open("/home/emile/Documents/Github/Ping_Pong/Ball_Tracker/OpenCV/frame_change.txt");
+    for(int i=0;i<500;++i) out<<frameList[i]<<'\n';
+
+    out.close();
+    return 0;
+}
+
+void draw_circles(Mat &image,vector<Vec3f> circles){
+    for( size_t i = 0; i < circles.size(); i++ )
+    {
+        Point center(cvRound(circles[i][0]+p1.x), cvRound(circles[i][1]+p1.y));
+        int radius = cvRound(circles[i][2]);
+        // draw the circle center
+        circle( image, center, 3, Scalar(0,255,0), -1, 8, 0 );
+        // draw the circle outline
+        circle( image, center, radius, Scalar(0,0,255), 3, 8, 0 );
+    }
 }

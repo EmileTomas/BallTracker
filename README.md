@@ -34,6 +34,8 @@ Total Time	I/O TIme		rate
 
 Total Time	I/O TIme		rate		
 
+720p
+
 0.00314573	0.00104858	0.333333
 
 小范围R[90-130]结果与上述一致
