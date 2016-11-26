@@ -6,17 +6,21 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/cudaimgproc.hpp>
 #include "SourceCode/hough.cpp"
-
+#include "FramePoint.h"
 
 using namespace std;
 using namespace cv;
+#define PI 3.14159265
 
 Point getMarkCenter(Mat frame,vector<Vec3f> circles);
+double pointDistance(Point p1,Point p2);
+double calRotateSpeed(FramePoint fp1,FramePoint fp2,double radius,double frameRate);
+
 void initial_widgets(){
-    namedWindow( "circles", 1 );
-    namedWindow("Canny",1);
-    namedWindow("detect_part",1);
-    namedWindow("Mark",1);
+    namedWindow( "circles",0);
+    namedWindow("Canny",0);
+    namedWindow("detect_part",0);
+    namedWindow("Mark",0);
 }
 const int THRESHOLD=60;
 
@@ -28,8 +32,11 @@ int main(int argc, char** argv)
 
     bool key_pressed=true;
     bool find_circle=false;
+    bool find_suitable_mark_position=false;
     Point center;
-
+    FramePoint suitable_mark,second_mark;
+    int radius=0;
+    double frame_rates=cap.get(CV_CAP_PROP_FPS), rotate_rate;
     Mat frame, gray,canny,detect_frame;
     long frame_count=0; //Use this to count
     Rect rect;
@@ -48,7 +55,25 @@ int main(int argc, char** argv)
             GaussianBlur( gray, gray, Size(9, 9), 2, 2 );
             Canny(gray,canny,THRESHOLD/2,THRESHOLD);
             imshow("Canny",canny);
-            getMarkCenter(detect_frame,circles);
+
+            //the position is in the detect_frame;
+            Point mark_position=getMarkCenter(detect_frame,circles);
+            Point detect_frame_center(radius*1.4,radius*1.4);
+            if(!find_suitable_mark_position&&pointDistance(mark_position,detect_frame_center)<=radius*0.5){
+                find_suitable_mark_position=true;
+                suitable_mark=FramePoint(mark_position,detect_frame_center,frame_count);
+            }
+            if(find_suitable_mark_position&&pointDistance(suitable_mark.getPoint(),mark_position)>=radius*0.3){
+                second_mark=FramePoint(mark_position,detect_frame_center,frame_count);
+                rotate_rate=calRotateSpeed(suitable_mark,second_mark,radius,frame_rates);
+                find_suitable_mark_position=false;
+
+            }
+
+            Point botton_left=Point(40,40);
+            putText(frame,to_string(rotate_rate),botton_left,CV_FONT_HERSHEY_COMPLEX, 1, Scalar(255, 0, 0) );
+
+
             self::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 2, gray.rows/4,THRESHOLD, 70 ,40);
 
             if(circles.size()>0){
@@ -71,10 +96,12 @@ int main(int argc, char** argv)
 
 
 
+
+
         for( size_t i = 0; i < circles.size(); i++ )
         {
-            Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-            int radius = cvRound(circles[i][2]);
+            center=Point(cvRound(circles[i][0]), cvRound(circles[i][1]));
+            radius = cvRound(circles[i][2]);
             // draw the circle center
             circle( frame, center, 3, Scalar(0,255,0), -1, 8, 0 );
             // draw the circle outline
@@ -92,7 +119,7 @@ int main(int argc, char** argv)
             find_circle=false;
 
         imshow( "circles", frame );
-        if(char(waitKey(1))=='q')
+        if(char(waitKey(30))=='q')
             key_pressed= false;
     }
     return 0;
@@ -133,6 +160,35 @@ Point getMarkCenter(Mat frame,vector<Vec3f> circles){
     circle( frame_threshold_black, center, 3, Scalar(0,255,0), -1, 8, 0 );
     imshow("Mark",frame_threshold_black);
     return center;
+}
+
+double calRotateSpeed(FramePoint fp1,FramePoint fp2,double radius,double frameRate){
+    /*Suppose in the different frame, the view from the highspeed camera has little change, and in this
+     * way, in fact we needn't two center in the two frame, but considring the experiment is base on
+     * normal video, so we take this into consideration.
+    */
+    Vec3i v1,v2;
+    Point p1=fp1.getPoint(),p2=fp2.getPoint();
+    Point center1=fp1.getCenter(),center2=fp2.getCenter();
+
+    //Vector of ball center to p1 and p2
+    v1[1]=p1.x-center1.x;
+    v1[2]=p1.y-center1.y;
+    v1[0]=int(sqrt(radius*radius-v1[1]*v1[1]-v1[2]*v1[2]));
+
+    v2[1]=p2.x-center2.x;
+    v2[2]=p2.y-center2.y;
+    v2[0]=int(sqrt(radius*radius-v2[1]*v2[1]-v2[2]*v2[2]));
+
+    //the calulate the included angle;
+    double theta=acos((v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2])/(radius*radius))/2/PI;
+    double rotateSpeed=theta/((fp2.getFrame_num()-fp1.getFrame_num())/frameRate);
+    return rotateSpeed;
+}
+
+double pointDistance(Point p1,Point p2){
+    double distance=sqrt((p2.x-p1.x)*(p2.x-p1.x)+(p2.y-p1.y)*(p2.y-p1.y));
+    return distance;
 }
     /*VideoCapture cap("/home/emile/Documents/Github/Ping_Pong/test.mp4");
     if(!cap.isOpened()){
