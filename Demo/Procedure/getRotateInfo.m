@@ -11,10 +11,10 @@ theta=x(3);
 
 z0=sqrt(radius^2-x0^2-y0^2);
 
-a=x0/sqrt(x0^2+y0^2+z0^2);
-b=y0/sqrt(x0^2+y0^2+z0^2);
-c=z0/sqrt(x0^2+y0^2+z0^2);
-d=sqrt(y0^2+z0^2)/sqrt(x0^2+y0^2+z0^2);
+a=x0/radius;
+b=y0/radius;
+c=z0/radius;
+d=sqrt(y0^2+z0^2)/radius;
 
 Rx=[1       0       0       0; 
         0   c/d     -b/d     0; 
