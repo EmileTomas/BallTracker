@@ -7,12 +7,20 @@
 %       need for us using such a video frame, which will extremely slow
 %       down the Ball Detector before it detected ball at the first time. A
 %       small size of frame make this procedure much faster.
+%
+% Please delete dimensionIndex in the next few version, it's just for
+% testing.So does detectedTimestamp
+% dimensionIndex record the dimension of point set
+% detectedTimestamp record the time in the video the rotation information is detected.
 clc;
 clear;
 
 RotateSpeed=[];
+detectedTimestamp=[];
 % Preset parameters
 global INPUT_FPS;
+global dimensionIndex;
+dimensionIndex=[];
 VIDEO_PATH='C:\Users\Administrator\Desktop\Ball\½»´ó\5.mp4';
 TARGET_FRAME_SIZE=[720 1280];
 FPS_INFO_POSITION=[0 0];
@@ -80,9 +88,15 @@ while hasFrame(videoObj)
     if(~isempty(theta))
         rotate_text=['Rotation Speed:',num2str(theta/2/pi*INPUT_FPS,'%0.1f')];
         RotateSpeed(size(RotateSpeed,2)+1)=theta/pi/2*INPUT_FPS;
+        detectedTimestamp(size(detectedTimestamp,2)+1)=frame_count/INPUT_FPS;
         frame=insertText(frame,ROTATE_INFO_POS,rotate_text);
     end
     videoPlayer(frame);
 end
 
 release(videoPlayer);
+rotateInfoFilter=dimensionIndex>5;
+scatter(detectedTimestamp(rotateInfoFilter),RotateSpeed(rotateInfoFilter));
+xlabel('Time(s)');
+ylabel('Rotation Speed(r)');
+title('Rotation Info/Time');
