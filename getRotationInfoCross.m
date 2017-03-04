@@ -6,7 +6,6 @@ function [ predictedAxis,predictedTheta] = getRotationInfoCross( pointSetBefore,
 %eliminate those point too large and too small(close to
 % zero), then find the most possible interval to present the result.
 global INPUT_FPS;
-INPUT_FPS
 pointSetSize=size(pointSetBefore,2);
 combinationNum=factorial(pointSetSize)/(factorial(3)*factorial(pointSetSize-3));
 theta=zeros(1,combinationNum);
