@@ -55,7 +55,7 @@ while hasFrame(videoObj)
         [axis,theta]=rotationDetector(last_frame,frame,last_frame_center_info,center_info);
     else
         axis=[];
-        theta=0;
+        theta=[];
     end
     
     elapsedTime=toc;
@@ -77,7 +77,7 @@ while hasFrame(videoObj)
         frame=insertText(frame,CENTER_INFO_POS,center_text);
         frame=insertShape(frame,'circle',[center radius]);
     end
-    if(theta~=0)
+    if(~isempty(theta))
         rotate_text=['Rotation Speed:',num2str(theta/2/pi*INPUT_FPS,'%0.1f')];
         RotateSpeed(size(RotateSpeed,2)+1)=theta/pi/2*INPUT_FPS;
         frame=insertText(frame,ROTATE_INFO_POS,rotate_text);

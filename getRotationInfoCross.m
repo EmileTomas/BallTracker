@@ -5,6 +5,10 @@ function [ predictedAxis,predictedTheta] = getRotationInfoCross( pointSetBefore,
 %most proper predicted rotate speed and corresponding axis, which includes, 
 %eliminate those point too large and too small(close to
 % zero), then find the most possible interval to present the result.
+
+predictedAxis=[];
+predictedTheta=[];
+
 global INPUT_FPS;
 pointSetSize=size(pointSetBefore,2);
 combinationNum=factorial(pointSetSize)/(factorial(3)*factorial(pointSetSize-3));
@@ -26,11 +30,15 @@ indexOfComplex=~~imag(theta);
 theta(indexOfComplex)=[];
 axis(indexOfComplex)=[];
 
+%Check if theta is removed
+if(isempty(theta)) 
+    return
+end
+
 BIN_WIDTH=0.2;
 rotateSpeed=theta/2/pi*INPUT_FPS;
 [frequencyList,edges]=histcounts(rotateSpeed,'BinWidth',BIN_WIDTH);
 [frequency,max_pos]=max(frequencyList);
-
 
 count=0;
 theta_sum=0;
@@ -47,5 +55,6 @@ end
 
 predictedTheta=theta_sum/count;
 predictedAxis=axis_sum/count;
+
 end
 

@@ -1,7 +1,6 @@
-function [axis,theta,solve_flag]=rotationDetector(frame1,frame2,centerInfo1,centerInfo2)
+function [axis,theta]=rotationDetector(frame1,frame2,centerInfo1,centerInfo2)
  axis=[];
  theta=[];
- solve_flag=0;
  
  center1=centerInfo1(1:2);
  center2=centerInfo2(1:2);
@@ -21,9 +20,10 @@ function [axis,theta,solve_flag]=rotationDetector(frame1,frame2,centerInfo1,cent
  matchedPoints1=frame1_valid_points(indexPairs(:,1));
  matchedPoints2=frame2_valid_points(indexPairs(:,2));
  matchedPointsLocation1=matchedPoints1.Location;
-  matchedPointsLocation2=matchedPoints2.Location;
+ matchedPointsLocation2=matchedPoints2.Location;
+  
  if(size(matchedPointsLocation1,1)~=0)
-     %delete those matched points exceed the ball edge
+    %delete those matched points exceed the ball edge
     tmp=matchedPointsLocation1-center1;
     tmp=sqrt(tmp(:,1).^2+tmp(:,2).^2);
     tmp=tmp<radius1;
@@ -36,14 +36,13 @@ function [axis,theta,solve_flag]=rotationDetector(frame1,frame2,centerInfo1,cent
     tmp=find(~tmp);
     matchedPointsLocation2(tmp,:)=[];
     
-
     if(size(matchedPointsLocation1,1)>=3)
-        solve_flag=1;
         data1=getSpaceCoordinate(matchedPointsLocation1,center1,radius1);
         data2=getSpaceCoordinate(matchedPointsLocation2,center2,radius2);
         data2=data2/(radius2/radius1);
         [axis,theta]=getRotationInfoCross(data1,data2,radius1);
     end
+    
  end
 
 end
