@@ -35,8 +35,8 @@ rotateSpeed=theta/2/pi*INPUT_FPS;
 count=0;
 theta_sum=0;
 axis_sum=[0,0,0];
-UPPER_BOUND=edges(max_pos)+BIN_WIDTH/2;
-LOWER_BOUND=edges(max_pos)-BIN_WIDTH/2;
+UPPER_BOUND=edges(max_pos)+BIN_WIDTH;
+LOWER_BOUND=edges(max_pos);
 for i =1:size(theta,2)
     if(rotateSpeed(i)<UPPER_BOUND&&rotateSpeed(i)>LOWER_BOUND)
         count=count+1;
