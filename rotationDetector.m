@@ -42,7 +42,7 @@ function [axis,theta,solve_flag]=rotationDetector(frame1,frame2,centerInfo1,cent
         data1=getSpaceCoordinate(matchedPointsLocation1,center1,radius1);
         data2=getSpaceCoordinate(matchedPointsLocation2,center2,radius2);
         data2=data2/(radius2/radius1);
-        [axis,theta]=getRotationInfo(data1,data2,radius1);
+        [axis,theta]=getRotationInfoCross(data1,data2,radius1);
     end
  end
 

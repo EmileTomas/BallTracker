@@ -1,62 +1,44 @@
-# Log
+### RDS Development Log
 
-## Verision 1
+## Introduction
 
-整体处理思路,开始不断探测乒乓球,一旦探测到便锁定乒乓球的位置,在乒乓球所在局部进行测试. 在范例视频中处理可以达到319-476的帧率,图中乒乓球的半径为120的像素点左右,
+This is a log file for the development of **Rotation Detection System(RDS)**. RDS is developed for the Ping-Pong robot and there is one other similar project which aims to predict and rebuild the 3D movement of Ping-Pong ball using machine learning.
 
-搜索范围是320*320的方框,这样得到的其实是1080p分辨率中截取的乒乓球,工业相机可能在输入400fps下只能达到720p,另外可以通过提高显卡配置进行优化,所以此阶段证明了该套方案的可行性.
+Totally speaking, the target of this system is to tracking the high speed rotation of a Ping-Pong ball without adding extra marks to the ball. The output of the system is the rotation axis and the rotation speed in 3D space, which are also important input parameters for the training of neural network. 
 
-### Nov 10th 2016
+There are several important part for RDS works well:
 
-通过matlab的Hough变换圆检测,并通过缩小检测范围可以将帧率从10FPS提高到40FPS左右.
+- Ball Detection
 
-下一步的提升,通过了解Hough变换算法,对其进行改进 以及通过CUDA进行GPU运算进行提升.
+  Although the 3D rebuilding of the Ping-Pong ball can provide RDS some information about the location of Ping Pong, we still need to catch the ball when it enters the camera.
 
-### NOV 11th 2016
+  Difficult:
 
-通过OpenCV平台进行圆形检测,使用`houghCircles()`,帧率达到100 FPS,但是对于参数比较敏感.
+  The need to resize the window to speed up the detection.
 
-下面进行RHT的尝试.
+- Feature Matching 
 
+  Find out the matching points using SURF algorithm.
 
-
-#### NOV 13th 2016
-
-通过采用局部`houghcircles`检测(前端需要动态跟踪制导),可以将fps提高至300FPS.(without radius information)
-
-采用全局方式+GPU加速(GTX 850M)为158 FPS, I/O占到17%,提高GPU型号应该可以达到200 FPS
-
-Total Time	I/O TIme		rate			
-
-0.00629146	0.00104858	0.166667 
+  There might be not enough features.
 
 
 
-采用局部方式+GPU+(大范围R[100-200]加速(实际R为110-120)
 
-Total Time	I/O TIme		rate		
+## Personal Notes
 
-720p
+Here are something might need to improve in the prototype.
 
-0.00314573	0.00104858	0.333333
+1. The size of cropped picture in the *getDetectArea.m*, more responsible ratio might be found.
 
-小范围R[90-130]结果与上述一致
+2. The system might need to check the validity of the circle found via *ballDetector.m* from more aspects, for example, checking the color of the pixels around the circle center we find.
 
-FPS基本稳定在319--476
+   **This is important, because if we find wrong center from the image, we might crop the next frame in the wrong place, although the system will  try to find circle in the global frame in the next next frame. Whereas if we can eliminate the wrong center at the beginning, the system will try to find circle in the global frame in the next frame immediately**
 
+   Also there might be one static list which could use average radius to represent the radius we find.(might help)
 
+   We might come up with a specialized system to catch the ball before the ball enter the camera, because searching ball in a frame containing the ball might used some information before like radius range can shrink into a small range.
 
-### NOV 25th 2016
+3. Data Visualization 
 
-采用新的视频作为实验视频,并且此视频上做转速测量的测试,通过色域分离的方式统计Mark坐标.
-
-目前最主要问题还是在于
-
-1. 不能确保任何一帧图标都能够检测到需要的乒乓球轮廓.
-2. 检测到Mark,测量角速度时候对于不同球的转速而言,不能简单选取相邻的两帧的Mark测量,否则在转速慢的情况下相邻Mark之间变化过小会导致误差被放大,在此Demo中.通过手动尝试适合的step来演示.
-
-## Verision 2
-
-### DEC 22th 2016
-
-采用特征点进行匹配算法的改进
+   refreshdata 

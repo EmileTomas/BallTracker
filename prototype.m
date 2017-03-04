@@ -10,7 +10,9 @@
 clc;
 clear;
 
+RotateSpeed=[];
 % Preset parameters
+global INPUT_FPS;
 VIDEO_PATH='C:\Users\Administrator\Desktop\Ball\½»´ó\5.mp4';
 TARGET_FRAME_SIZE=[720 1280];
 FPS_INFO_POSITION=[0 0];
@@ -26,6 +28,7 @@ last_frame_center=[];
 last_frame_radius=0;
 
 videoObj=VideoReader(VIDEO_PATH);
+INPUT_FPS=videoObj.FrameRate;
 videoPlayer=vision.VideoPlayer('Position',[500 500 600 600]);
 while hasFrame(videoObj)
     tic;
@@ -75,11 +78,11 @@ while hasFrame(videoObj)
         frame=insertShape(frame,'circle',[center radius]);
     end
     if(theta~=0)
-        rotate_text=['Rotation Speed:',num2str(theta/pi*25,'%0.1f')];
+        rotate_text=['Rotation Speed:',num2str(theta/2/pi*INPUT_FPS,'%0.1f')];
+        RotateSpeed(size(RotateSpeed,2)+1)=theta/pi/2*INPUT_FPS;
         frame=insertText(frame,ROTATE_INFO_POS,rotate_text);
     end
     videoPlayer(frame);
 end
 
-release(videoObj);
 release(videoPlayer);
