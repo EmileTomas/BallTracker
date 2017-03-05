@@ -1,6 +1,6 @@
 function detectArea=getDetectArea(center,radius)
     % This is a util function for the main body
-     RATIO=1.5;
+     RATIO=1.2;
 
      if(center(1)-radius*RATIO>=0)
          detect_x_min=center(1)-radius*RATIO;

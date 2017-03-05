@@ -1,11 +1,11 @@
-function [axis,theta]=rotationDetector(frame1,frame2,centerInfo1,centerInfo2)
+function [axis,theta]=rotationDetector(frame1,frame2,circleInfo1,circleInfo2)
  axis=[];
  theta=[];
  
- center1=centerInfo1(1:2);
- center2=centerInfo2(1:2);
- radius1=centerInfo1(3);
- radius2=centerInfo2(3);
+ center1=circleInfo1(1:2);
+ center2=circleInfo2(1:2);
+ radius1=circleInfo1(3);
+ radius2=circleInfo2(3);
  frame1_gray=rgb2gray(frame1);
  frame2_gray=rgb2gray(frame2);
  ROI1=getDetectArea(center1,radius1);
@@ -21,28 +21,18 @@ function [axis,theta]=rotationDetector(frame1,frame2,centerInfo1,centerInfo2)
  matchedPoints2=frame2_valid_points(indexPairs(:,2));
  matchedPointsLocation1=matchedPoints1.Location;
  matchedPointsLocation2=matchedPoints2.Location;
-  
- if(size(matchedPointsLocation1,1)~=0)
-    %delete those matched points exceed the ball edge
-    tmp=matchedPointsLocation1-center1;
-    tmp=sqrt(tmp(:,1).^2+tmp(:,2).^2);
-    tmp=tmp<radius1;
-    tmp=find(~tmp);
-    matchedPointsLocation1(tmp,:)=[];
-
-    tmp=matchedPointsLocation2-center2;
-    tmp=sqrt(tmp(:,1).^2+tmp(:,2).^2);
-    tmp=tmp<radius2;
-    tmp=find(~tmp);
-    matchedPointsLocation2(tmp,:)=[];
+ 
+ matchedPointsInfo1={matchedPointsLocation1,circleInfo1};
+ matchedPointsInfo2={matchedPointsLocation2,circleInfo2};
+ 
+ global DELETE_RATIO;
+ [processedPointsLocation1,processedPointsLocation2]=deleteEdgeMatchedPoints(matchedPointsInfo1,matchedPointsInfo2,DELETE_RATIO);
     
-    if(size(matchedPointsLocation1,1)>=3)
-        data1=getSpaceCoordinate(matchedPointsLocation1,center1,radius1);
-        data2=getSpaceCoordinate(matchedPointsLocation2,center2,radius2);
-        data2=data2/(radius2/radius1);
-        [axis,theta]=getRotationInfoCross(data1,data2,radius1);
-    end
-    
- end
+ if(size(processedPointsLocation1,1)>=3)
+     data1=getSpaceCoordinate(processedPointsLocation1,circleInfo1);
+     data2=getSpaceCoordinate(processedPointsLocation2,circleInfo2);
+     data2=data2/(radius2/radius1);
+     [axis,theta]=getRotationInfoCross(data1,data2,radius1);
+  end
 
 end

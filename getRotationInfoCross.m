@@ -5,6 +5,11 @@ function [ predictedAxis,predictedTheta] = getRotationInfoCross( pointSetBefore,
 %most proper predicted rotate speed and corresponding axis, which includes, 
 %eliminate those point too large and too small(close to
 % zero), then find the most possible interval to present the result.
+%
+% Updated:
+%       if the size of point set is too large, program will eliminate the
+%       extra part. (20 at most by default)
+%
 global dimensionIndex;
 
 predictedAxis=[];
@@ -12,7 +17,11 @@ predictedTheta=[];
 
 global INPUT_FPS;
 pointSetSize=size(pointSetBefore,2);
-combinationNum=factorial(pointSetSize)/(factorial(3)*factorial(pointSetSize-3));
+if(pointSetSize>20)
+    pointSetSize=20;
+end
+
+combinationNum=getNumOfCombination(pointSetSize,3);
 theta=zeros(1,combinationNum);
 axis=cell(1,combinationNum);
 

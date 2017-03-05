@@ -1,5 +1,6 @@
-function tri_dimension_points=getSpaceCoordinate(input_points,center,radius)
-
+function tri_dimension_points=getSpaceCoordinate(input_points,circleInfo)
+center=circleInfo(1:2);
+radius=circleInfo(3);
 O_x=center(1);
 O_y=center(2);
 tri_dimension_points=zeros(3,size(input_points,1));

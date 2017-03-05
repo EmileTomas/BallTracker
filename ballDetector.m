@@ -9,7 +9,7 @@ function [center_out, radius_out, find_ball_flag_out]=ballDetector(frame,radius_
         
 if(~find_ball_flag_in)
         % find the ball from whole frame
-        radius_range=[30,130];
+        radius_range=[70,200];
     else
         % find the ball form cropped frame
         radius_range=[int16(radius_in)-20,int16(radius_in)+20];
