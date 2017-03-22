@@ -23,7 +23,7 @@ global dimensionIndex;
 global DELETE_RATIO;
 DELETE_RATIO=0.8;
 dimensionIndex=[];
-VIDEO_PATH='C:\Users\Administrator\Desktop\Ball\交大\1.mp4';
+VIDEO_PATH='C:\Users\Administrator\Desktop\Ball\交大\5.mp4';
 TARGET_FRAME_SIZE=[720 1280];
 FPS_INFO_POSITION=[0 0];
 RADIUS_INFO_POS=[0,25];

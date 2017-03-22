@@ -1,4 +1,4 @@
-function [ predictedAxis,predictedTheta] = getRotationInfoCross( pointSetBefore,pointSetAfter,radius )
+function [ axis,theta] = getRotationInfoCross( pointSetBefore,pointSetAfter,radius )
 %GETROTATIONINFOCROSS This function is the updated version of the
 %getRotationInfo.m. In this Function, we use all the information provided
 %by the SURF matched point sets, and use mathematic statistics to find the
@@ -11,61 +11,15 @@ function [ predictedAxis,predictedTheta] = getRotationInfoCross( pointSetBefore,
 %       extra part. (20 at most by default)
 %
 global dimensionIndex;
-
-predictedAxis=[];
-predictedTheta=[];
-
 global INPUT_FPS;
-pointSetSize=size(pointSetBefore,2);
-if(pointSetSize>20)
-    pointSetSize=20;
-end
 
-combinationNum=getNumOfCombination(pointSetSize,3);
-theta=zeros(combinationNum,1);
-axis=zeros(combinationNum,3);
-index=1;
-for i =1:pointSetSize
-    for j=i+1:pointSetSize
-        for k=j+1:pointSetSize
-            [axis(i,:),theta(index)]=getRotationInfo(pointSetBefore(:,[i,j,k]),pointSetAfter(:,[i,j,k]),radius);
-            index=index+1;
-        end
-    end
-end
+[axisDistrubution,thetaDistrubution]=getRotateInfoDistrubution(pointSetBefore,pointSetAfter);
+theta=findFittingValue(thetaDistrubution, 0.2*2*pi/INPUT_FPS);
+axis_x=findFittingValue(axisDistrubution(:,1),0.05);
+axis_y=findFittingValue(axisDistrubution(:,2),0.05);
+axis_z=findFittingValue(axisDistrubution(:,3),0.05);
+axis=[axis_x,axis_y,axis_z];
 
-%remove theta with image part
-
-indexOfComplex=~~imag(theta);
-
-theta(indexOfComplex)=[];
-axis(indexOfComplex,:)=[];
-
-%Check if theta is removed
-if(isempty(theta)) 
-    return
-end
-
-BIN_WIDTH=0.2;
-rotateSpeed=theta/2/pi*INPUT_FPS;
-[frequencyList,edges]=histcounts(rotateSpeed,'BinWidth',BIN_WIDTH);
-[frequency,max_pos]=max(frequencyList);
-
-count=0;
-theta_sum=0;
-axis_sum=[0,0,0];
-UPPER_BOUND=edges(max_pos)+BIN_WIDTH;
-LOWER_BOUND=edges(max_pos);
-for i =1:size(theta,2)
-    if(rotateSpeed(i)<UPPER_BOUND&&rotateSpeed(i)>LOWER_BOUND)
-        count=count+1;
-        theta_sum=theta_sum+theta(i);
-        axis_sum=axis_sum+axis(i,:);
-    end
-end
-
-predictedTheta=theta_sum/count;
-predictedAxis=axis_sum/count;
-dimensionIndex(size(dimensionIndex,2)+1)=pointSetSize;
+dimensionIndex(size(dimensionIndex,2)+1)=size(pointSetBefore,2);
 end
 
