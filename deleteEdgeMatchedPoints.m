@@ -10,6 +10,9 @@ function [ matchedPointsLocation1,matchedPointsLocation2 ] = deleteEdgeMatchedPo
 %   return:
 %   return [] if there is point left in matchedPointsLocation1 and
 %   matchedPointsLocation2
+
+
+    
 if(size(matchedPointsInfo1{1},1)==0)
     matchedPointsLocation1=[];
     matchedPointsLocation2=[];
@@ -35,6 +38,3 @@ deletedIndex2=~(tmp<radius2*ratio);
 deletedIndex=deletedIndex1|deletedIndex2;
 matchedPointsLocation1(deletedIndex,:)=[];
 matchedPointsLocation2(deletedIndex,:)=[];
-
-end
-

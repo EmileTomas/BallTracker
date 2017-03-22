@@ -92,12 +92,13 @@ while hasFrame(videoObj)
         RotateSpeed(size(RotateSpeed,2)+1)=theta/pi/2*INPUT_FPS;
         detectedTimestamp(size(detectedTimestamp,2)+1)=frame_count/INPUT_FPS;
         frame=insertText(frame,ROTATE_INFO_POS,rotate_text);
+        axis
     end
     videoPlayer(frame);
 end
 
 release(videoPlayer);
-rotateInfoFilter=dimensionIndex>5;
+rotateInfoFilter=dimensionIndex>=3;
 scatter(detectedTimestamp(rotateInfoFilter),RotateSpeed(rotateInfoFilter));
 xlabel('Time(s)');
 ylabel('Rotation Speed(r)');

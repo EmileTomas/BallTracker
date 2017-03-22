@@ -11,17 +11,19 @@ function [axis,theta]=rotationDetector(frame1,frame2,circleInfo1,circleInfo2)
  ROI1=getDetectArea(center1,radius1);
  ROI2=getDetectArea(center2,radius2);
  
- frame1_points=detectSURFFeatures(frame1_gray,'ROI',ROI1);
- frame2_points=detectSURFFeatures(frame2_gray,'ROI',ROI2);
+ frame1_points=detectSURFFeatures(frame1_gray,'ROI',ROI1,'MetricThreshold',1200);
+ frame2_points=detectSURFFeatures(frame2_gray,'ROI',ROI2,'MetricThreshold',1200);
+
  [frame1_features,frame1_valid_points]=extractFeatures(frame1_gray,frame1_points);
  [frame2_features,frame2_valid_points]=extractFeatures(frame2_gray,frame2_points);
- indexPairs=matchFeatures(frame1_features,frame2_features);
+ [indexPairs,weight_metrics]=matchFeatures(frame1_features,frame2_features);
+ 
  
  matchedPoints1=frame1_valid_points(indexPairs(:,1));
  matchedPoints2=frame2_valid_points(indexPairs(:,2));
+ 
  matchedPointsLocation1=matchedPoints1.Location;
  matchedPointsLocation2=matchedPoints2.Location;
- 
  matchedPointsInfo1={matchedPointsLocation1,circleInfo1};
  matchedPointsInfo2={matchedPointsLocation2,circleInfo2};
  

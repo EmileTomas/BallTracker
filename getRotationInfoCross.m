@@ -22,23 +22,24 @@ if(pointSetSize>20)
 end
 
 combinationNum=getNumOfCombination(pointSetSize,3);
-theta=zeros(1,combinationNum);
-axis=cell(1,combinationNum);
-
+theta=zeros(combinationNum,1);
+axis=zeros(combinationNum,3);
 index=1;
 for i =1:pointSetSize
     for j=i+1:pointSetSize
         for k=j+1:pointSetSize
-            [axis{index},theta(index)]=getRotationInfo(pointSetBefore(:,[i,j,k]),pointSetAfter(:,[i,j,k]),radius);
+            [axis(i,:),theta(index)]=getRotationInfo(pointSetBefore(:,[i,j,k]),pointSetAfter(:,[i,j,k]),radius);
             index=index+1;
         end
     end
 end
 
 %remove theta with image part
+
 indexOfComplex=~~imag(theta);
+
 theta(indexOfComplex)=[];
-axis(indexOfComplex)=[];
+axis(indexOfComplex,:)=[];
 
 %Check if theta is removed
 if(isempty(theta)) 
@@ -59,7 +60,7 @@ for i =1:size(theta,2)
     if(rotateSpeed(i)<UPPER_BOUND&&rotateSpeed(i)>LOWER_BOUND)
         count=count+1;
         theta_sum=theta_sum+theta(i);
-        axis_sum=axis_sum+axis{i};
+        axis_sum=axis_sum+axis(i,:);
     end
 end
 

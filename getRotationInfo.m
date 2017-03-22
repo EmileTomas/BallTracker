@@ -5,12 +5,10 @@ function [ axis,theta ] = getRotationInfo( pointSetBefore,pointSetAfter,radius)
 %  behind the formulas is complicated. 
 
 featureMat=pointSetAfter(:,1:3)/pointSetBefore(:,1:3);
-cosTheta=(trace(featureMat)-1)/2;
-x=radius*sqrt((featureMat(1,1)-cosTheta)/(1-cosTheta));
-y=radius*sqrt((featureMat(2,2)-cosTheta)/(1-cosTheta));
-z=radius*sqrt((featureMat(3,3)-cosTheta)/(1-cosTheta));
-theta=acos(cosTheta);
 
+cosTheta=(trace(featureMat)-1)/2;
+theta=acos(cosTheta);
+[x,y,z]=getAxis(featureMat);
 axis=[x y z];
 end
 
